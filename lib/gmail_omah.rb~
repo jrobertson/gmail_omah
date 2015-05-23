@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+
+# file: gmail_omah.rb
+
+require 'gmail'
+require 'omah'
+require 'sps-pub'
+
+class GmailOmah
+
+  def initialize(user: 'user', filepath: '.', mail: {}, sps: {}, email_address: nil)
+
+    @user = user    
+    @mail = {user_name: '',  password: '' }.merge mail
+
+    field = %i(user_name password).detect {|x| @mail[x].empty?}
+    return "GmailOmah: missing %s" % field if field
+        
+    @sps = SPSPub.new(address: sps[:address], port: sps[:port]) if sps
+    @email_address = email_address ? email_address : \
+          @mail[:user_name] + '@' + @mail[:address].split('.')[1..-1].join('.')
+
+    Dir.chdir filepath
+
+  end
+
+  def fetch_email()
+    
+    gmail = Gmail.new(@mail[:user_name], @mail[:password])
+    a = gmail.inbox.emails
+    
+    return 'no new messages' unless a.any?
+
+    # fields we are interested in:
+    #
+    #    :from,  :message_id, :to, :subject, :date, :body.decoded, 
+    #    :text_part.to_s, html_part.to_s
+
+    messages = a.map.with_index.inject([]) do |r, x|
+
+      gmail_msg, i = x
+      msg = gmail_msg.message
+
+      begin
+        r << {
+          id:         msg.message_id,
+          from:       msg.from.is_a?(Array) ? msg.from.join(', ') : msg.from,
+          to:         msg.to.is_a?(Array) ? msg.to.join(', ') : msg.to,
+          subject:    msg.subject,
+          date:       msg.date.to_s,
+          body_text:  (msg.text_part ? msg.text_part.body.decoded : msg.body.decoded),
+          body_html:  (msg.html_part ? msg.html_part.body.decoded : msg.body.decoded),
+          attachments: msg.attachments.map {|x| [x.filename, x.body.decoded] }
+        }
+      rescue
+        puts 'warning: ' + ($!).inspect
+      end
+      
+    r
+
+    end
+
+    o = Omah.new user: @user
+
+    # messages are stored to the file dynarexdaily.xml
+    o.store messages    
+    
+    if @sps then
+      
+      m = 'message'
+      m += 's' if messages.length > 1
+      @sps.notice "email/new: %s received %s new %s" \
+                                    % [@email_address, messages.length, m]
+    end
+
+    a.each {|email|  email.delete! }
+  end
+end
