@@ -4,7 +4,7 @@
 
     mail = {user_name: 'somebody@gmail.com', password: 'secretpassword'}
 
-    gomah = GmailOmah.new mail: mail, sps: {address: 'sps', port: 59000}
+    gomah = GmailOmah.new mail: mail
     gomah.fetch_email
 
 
