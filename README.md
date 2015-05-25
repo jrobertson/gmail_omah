@@ -14,7 +14,6 @@ The above example demonstrates how I fetch the email from my email server. Gmail
 2. retrieves all messages from the inbox
 3. stores the messages in a file directory called *email*
 4. deletes all messages from the inbox
-5. publishes an SPS message to announce new email has been received.
 
 
 ## Resources
