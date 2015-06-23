@@ -4,11 +4,12 @@
 
 require 'gmail'
 require 'omah'
-require 'sps-pub'
 
-class GmailOmah
 
-  def initialize(user: 'user', filepath: '.', mail: {}, sps: {}, email_address: nil)
+class GmailOmah < Omah
+
+  def initialize(user: 'user', filepath: '.', mail: {}, \
+               options: {xslt: 'listing.xsl'}, plugins: [])
 
     @user = user    
     @mail = {user_name: '',  password: '' }.merge mail
@@ -16,10 +17,11 @@ class GmailOmah
     field = %i(user_name password).detect {|x| @mail[x].empty?}
     return "GmailOmah: missing %s" % field if field
         
-    @sps = SPSPub.new(address: sps[:address], port: sps[:port]) if sps
     @email_address = @mail[:user_name]
 
-    Dir.chdir filepath
+    @variables = {user_name: @mail[:user_name], email_address: @email_address}
+    
+    super(user: user, filepath: filepath, plugins: plugins, options: options)    
 
   end
 
@@ -59,19 +61,11 @@ class GmailOmah
 
     end
 
-    o = Omah.new user: @user
-
-    # messages are stored to the file dynarexdaily.xml
-    o.store messages    
-    
-    m = 'message'
-    m += 's' if messages.length > 1
-    fqm = "email/new: %s received %s new %s" \
-                                  % [@email_address, messages.length, m]
-    
-    @sps.notice fqm if @sps
+    # messages are stored in the file dynarexdaily.xml
+    self.store messages    
 
     a.each {|email|  email.delete! }
-    fqm
+    messages.length.to_s + " new messages"
+    
   end
 end

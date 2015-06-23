@@ -11,7 +11,6 @@ class GmailOmah < Omah
   def initialize(user: 'user', filepath: '.', mail: {}, \
                options: {xslt: 'listing.xsl'}, plugins: [])
 
-    @user = user    
     @mail = {user_name: '',  password: '' }.merge mail
 
     field = %i(user_name password).detect {|x| @mail[x].empty?}
@@ -44,7 +43,7 @@ class GmailOmah < Omah
 
       begin
         r << {
-          id:         msg.message_id,
+          msg_id:     msg.message_id,
           from:       msg.from.is_a?(Array) ? msg.from.join(', ') : msg.from,
           to:         msg.to.is_a?(Array) ? msg.to.join(', ') : msg.to,
           subject:    msg.subject,
