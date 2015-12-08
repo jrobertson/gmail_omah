@@ -9,7 +9,7 @@ require 'omah'
 class GmailOmah < Omah
 
   def initialize(user: 'user', filepath: '.', mail: {}, \
-               options: {xslt: 'listing.xsl'}, plugins: [])
+               options: {xslt: 'listing.xsl'}, plugins: [], webpath: '/email')
 
     @mail = {user_name: '',  password: '' }.merge mail
 
@@ -25,7 +25,7 @@ class GmailOmah < Omah
   end
 
   def fetch_email()
-    
+
     gmail = Gmail.new(@mail[:user_name], @mail[:password])
     a = gmail.inbox.emails
     
