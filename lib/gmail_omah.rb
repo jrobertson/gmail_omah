@@ -9,7 +9,8 @@ require 'omah'
 class GmailOmah < Omah
 
   def initialize(user: 'user', filepath: '.', mail: {}, \
-               options: {xslt: 'listing.xsl'}, plugins: [], webpath: '/email')
+               options: {xslt: 'listing.xsl'}, plugins: [], 
+                 webpath: '/email', debug: false)
 
     @mail = {user_name: '',  password: '' }.merge mail
 
@@ -20,7 +21,8 @@ class GmailOmah < Omah
 
     @variables = {user_name: @mail[:user_name], email_address: @email_address}
     
-    super(user: user, filepath: filepath, plugins: plugins, options: options)    
+    super(user: user, filepath: filepath, plugins: plugins, 
+          options: options, debug: debug)    
 
   end
 
@@ -42,7 +44,7 @@ class GmailOmah < Omah
       msg = gmail_msg.message
 
       begin
-        r << {
+        r << [x, {
           msg_id:     msg.message_id,
           from:       msg.from.is_a?(Array) ? msg.from.join(', ') : msg.from,
           to:         msg.to.is_a?(Array) ? msg.to.join(', ') : msg.to,
@@ -51,7 +53,7 @@ class GmailOmah < Omah
           body_text:  (msg.text_part ? msg.text_part.body.decoded : msg.body.decoded),
           body_html:  (msg.html_part ? msg.html_part.body.decoded : msg.body.decoded),
           attachments: msg.attachments.map {|x| [x.filename, x.body.decoded] }
-        }
+        }]
       rescue
         puts 'warning: ' + ($!).inspect
       end
